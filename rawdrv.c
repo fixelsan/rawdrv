@@ -78,7 +78,7 @@ int main()
 	int32 rd1;
 
     Debug();
-	kprintf("rawmem start %s\n",__DATE__);
+	kprintf("rawmem start %s %s\n",__DATE__,__TIME__);
 	
 	drv=CreateItem(MKNODEID(KERNELNODE,DRIVERNODE),tags_drv);
 
@@ -147,19 +147,33 @@ Item drv_init(struct Driver * drv)
 
 int32 drv_cmdwrite(struct IOReq * ior)
 {
-	uint32 addr=ior->io_Info.ioi_CmdOptions;
-	uint32 * data=(void*)ior->io_Info.ioi_Send.iob_Buffer;
+	uint32 * addr=(uint32*)ior->io_Info.ioi_CmdOptions;
+	uint32 * data=(uint32*)ior->io_Info.ioi_Send.iob_Buffer;
+
 	
-	*(uint32*)addr=*data;
+	if(!ior->io_Info.ioi_Send.iob_Len)
+		addr[0]=data[0];
+	else
+	{
+		if(ior->io_Info.ioi_Send.iob_Len&3)
+			return 0;
+		svc_memcpy(addr,data,ior->io_Info.ioi_Send.iob_Len);
+	}
 
 	return 1;
 }
 int32 drv_cmdread(struct IOReq * ior)
 {
-	uint32 addr=ior->io_Info.ioi_CmdOptions;
-	uint32 * data=(void*)ior->io_Info.ioi_Recv.iob_Buffer;
+	uint32 * addr=(uint32*)ior->io_Info.ioi_CmdOptions;
+	uint32 * data=(uint32*)ior->io_Info.ioi_Recv.iob_Buffer;
 	
-	*data=*(uint32*)addr;
+	if(!ior->io_Info.ioi_Recv.iob_Len)
+		data[0]=addr[0];
+	else{
+		if(ior->io_Info.ioi_Recv.iob_Len&3)
+			return 0;
+		svc_memcpy(data,addr,io_Info.ioi_Recv.iob_Len);
+	}
 	
 	return 1;
 }
@@ -171,14 +185,23 @@ int32 drv_cmdstatus(struct IOReq * ior)
 int32 dev_init(struct Device * dev)
 {
 	svc_kprintf("priv dev_init \n");
+	dev->dev_OpenCnt=0;
 	return dev->dev.n_Item;
 }
 int32 dev_open(struct Device * dev)
 {
-	svc_kprintf("priv dev_open \n");
+	svc_kprintf("priv dev_open %x\n",++dev->dev_OpenCnt);
 	return dev->dev.n_Item;
 }
 void dev_close(struct Device * dev)
 {
-	svc_kprintf("priv dev_close \n");
+
+	dev->dev_OpenCnt--;
+	if(dev->dev_OpenCnt<0)
+		dev->dev_OpenCnt=0;
+
+	if(dev->dev_OpenCnt==0)
+		svc_kprintf("priv dev_close last \n");
+	else
+		svc_kprintf("priv dev_close. %x remained\n",dev->dev_OpenCnt);
 }
