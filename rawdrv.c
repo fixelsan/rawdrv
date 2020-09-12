@@ -17,10 +17,10 @@
 #include "driver.h"
 #include "device.h"
 #include "debug.h"
-
+#include "kernel_calls.h"
 //#include "signal.h"
 
-extern void svc_kprintf(const char *fmt, ... );
+
 
 
 enum driver_tags
