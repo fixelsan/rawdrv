@@ -1,24 +1,6 @@
-#include "types.h"
-#include "task.h"
-#include "kernel.h"
-#include "stdio.h"
-#include "operror.h"
-#include "nodes.h"
-#include "kernelnodes.h"
-#include "list.h"
-#include "folio.h"
-#include "task.h"
-#include "kernel.h"
-#include "mem.h"
-#include "operamath.h"
-#include "semaphore.h"
-#include "io.h"
-#include "event.h"
-#include "driver.h"
-#include "device.h"
-#include "debug.h"
+
+#include "portfolio.h"
 #include "kernel_calls.h"
-//#include "signal.h"
 
 
 
